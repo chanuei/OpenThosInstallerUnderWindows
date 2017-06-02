@@ -42,6 +42,10 @@ BOOL COpenThosInstallerApp::InitInstance()
 	// 如果一个运行在 Windows XP 上的应用程序清单指定要
 	// 使用 ComCtl32.dll 版本 6 或更高版本来启用可视化方式，
 	//则需要 InitCommonControlsEx()。  否则，将无法创建窗口。
+
+	EnablePrivileges(SE_DEBUG_NAME);
+	EnablePrivileges(SE_SYSTEM_ENVIRONMENT_NAME);
+
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
 	// 将它设置为包括所有要在应用程序中使用的
@@ -100,3 +104,30 @@ BOOL COpenThosInstallerApp::InitInstance()
 	return FALSE;
 }
 
+BOOL COpenThosInstallerApp::EnablePrivileges(LPCTSTR lpName)
+{
+	HANDLE hToken;
+	LUID sedebugnameValue;
+	TOKEN_PRIVILEGES tkp;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+		return FALSE;
+
+	if (!LookupPrivilegeValue(NULL, lpName, &sedebugnameValue))
+	{
+		CloseHandle(hToken);
+		return FALSE;
+	}
+
+	tkp.PrivilegeCount = 1;
+	tkp.Privileges[0].Luid = sedebugnameValue;
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	if (!AdjustTokenPrivileges(hToken, FALSE, &tkp, sizeof tkp, NULL, NULL))
+	{
+		CloseHandle(hToken);
+		return FALSE;
+	}
+
+	CloseHandle(hToken);
+	return TRUE;
+}

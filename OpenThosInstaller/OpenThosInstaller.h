@@ -24,6 +24,8 @@ public:
 public:
 	virtual BOOL InitInstance();
 
+	BOOL EnablePrivileges(LPCTSTR lpName);
+
 // й╣ож
 
 	DECLARE_MESSAGE_MAP()
